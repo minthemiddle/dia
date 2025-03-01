@@ -1,6 +1,6 @@
 use rustyline::completion::{Completer, Pair};
-use rustyline::{Context};
-use rustyline::validate::{Validator, ValidationContext, ValidationResult};
+use rustyline::validate::{ValidationContext, ValidationResult, Validator};
+use rustyline::Context;
 use rustyline_derive::{Helper, Highlighter};
 
 #[derive(Helper, Highlighter)]
@@ -18,12 +18,12 @@ impl Completer for CompleterHelper {
         _ctx: &Context<'_>,
     ) -> rustyline::Result<(usize, Vec<Pair>)> {
         let completions = Vec::new();
-        
+
         // TODO: Implement entity-based autocompletion
         // - Detect when user is typing @ (people), % (projects), or # (tags)
         // - Query database for matching entities
         // - Return as completion candidates
-        
+
         Ok((pos, completions))
     }
 }

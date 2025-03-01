@@ -1,5 +1,5 @@
-use rusqlite::{Connection, params};
 use chrono::{Local, NaiveDate};
+use rusqlite::{params, Connection};
 use thiserror::Error;
 
 use crate::config;
@@ -31,9 +31,9 @@ impl Core {
     pub fn init() -> Result<Self, Error> {
         let config = config::Config::load()?;
         let conn = Connection::open(&config.diary_db_path)?;
-        
+
         Self::init_tables(&conn)?;
-        
+
         Ok(Self { conn })
     }
 
@@ -88,33 +88,34 @@ impl Core {
 
             CREATE VIRTUAL TABLE IF NOT EXISTS entries_fts 
                 USING fts5(content, tokenize = 'porter unicode61');
-            "#
+            "#,
         )
     }
 
     pub fn add_entry(&mut self, content: &str, date: Option<&str>) -> Result<(), Error> {
-        let date = date.map(|d| NaiveDate::parse_from_str(d, "%Y-%m-%d"))
+        let date = date
+            .map(|d| NaiveDate::parse_from_str(d, "%Y-%m-%d"))
             .transpose()?
             .unwrap_or_else(|| Local::now().date_naive());
 
         let tx = self.conn.transaction()?;
-        
+
         // Insert main entry
         tx.execute(
             "INSERT INTO entries (content, date) VALUES (?, ?)",
-            params![content, date.to_string()]
+            params![content, date.to_string()],
         )?;
-        
+
         let entry_id = tx.last_insert_rowid();
-        
+
         // Extract and process entities
         // Using a separate method to avoid borrow issues
         Core::process_entities(&tx, entry_id, content)?;
-        
+
         // Insert into FTS table
         tx.execute(
             "INSERT INTO entries_fts (rowid, content) VALUES (?, ?)",
-            params![entry_id, content]
+            params![entry_id, content],
         )?;
 
         tx.commit()?;
@@ -124,82 +125,81 @@ impl Core {
     fn process_entities(
         tx: &rusqlite::Transaction,
         entry_id: i64,
-        content: &str
+        content: &str,
     ) -> Result<(), rusqlite::Error> {
         // Extract people (@name), projects (%name), and tags (#name)
         let people_regex = regex::Regex::new(r"@([\w-]+)").unwrap();
         let projects_regex = regex::Regex::new(r"%([\w-]+)").unwrap();
         let tags_regex = regex::Regex::new(r"#([\w-]+)").unwrap();
-        
+
         // Process people
         for cap in people_regex.captures_iter(content) {
             let name = &cap[1];
-            
+
             // Insert or get person
             tx.execute(
                 "INSERT OR IGNORE INTO people (name) VALUES (?)",
-                params![name]
+                params![name],
             )?;
-            
+
             let person_id = tx.query_row(
                 "SELECT id FROM people WHERE name = ?",
                 params![name],
-                |row| row.get::<_, i64>(0)
+                |row| row.get::<_, i64>(0),
             )?;
-            
+
             // Create relationship
             tx.execute(
                 "INSERT OR IGNORE INTO entry_people (entry_id, person_id) VALUES (?, ?)",
-                params![entry_id, person_id]
+                params![entry_id, person_id],
             )?;
         }
-        
+
         // Process projects
         for cap in projects_regex.captures_iter(content) {
             let name = &cap[1];
-            
+
             // Insert or get project
             tx.execute(
                 "INSERT OR IGNORE INTO projects (name) VALUES (?)",
-                params![name]
+                params![name],
             )?;
-            
+
             let project_id = tx.query_row(
                 "SELECT id FROM projects WHERE name = ?",
                 params![name],
-                |row| row.get::<_, i64>(0)
+                |row| row.get::<_, i64>(0),
             )?;
-            
+
             // Create relationship
             tx.execute(
                 "INSERT OR IGNORE INTO entry_projects (entry_id, project_id) VALUES (?, ?)",
-                params![entry_id, project_id]
+                params![entry_id, project_id],
             )?;
         }
-        
+
         // Process tags
         for cap in tags_regex.captures_iter(content) {
             let name = &cap[1];
-            
+
             // Insert or get tag
             tx.execute(
                 "INSERT OR IGNORE INTO tags (name) VALUES (?)",
-                params![name]
-            )?;
-            
-            let tag_id = tx.query_row(
-                "SELECT id FROM tags WHERE name = ?",
                 params![name],
-                |row| row.get::<_, i64>(0)
             )?;
-            
+
+            let tag_id =
+                tx.query_row("SELECT id FROM tags WHERE name = ?", params![name], |row| {
+                    row.get::<_, i64>(0)
+                })?;
+
             // Create relationship
             tx.execute(
                 "INSERT OR IGNORE INTO entry_tags (entry_id, tag_id) VALUES (?, ?)",
-                params![entry_id, tag_id]
+                params![entry_id, tag_id],
             )?;
         }
-        
+
         Ok(())
     }
 }

@@ -1,12 +1,12 @@
-use clap::{Parser, Subcommand};
 use crate::core::Core;
+use clap::{Parser, Subcommand};
 
-mod core;
-mod config;
 mod autocomplete;
+mod config;
+mod core;
+mod review;
 mod show;
 mod stats;
-mod review;
 
 #[derive(Parser)]
 #[command(name = "dia")]
@@ -20,30 +20,30 @@ struct Cli {
 enum Commands {
     /// Open the database file
     Db,
-    
+
     /// Log a new diary entry
     Log {
         /// The entry text with semantic tags
         entry: String,
-        
+
         #[arg(short, long)]
         /// Specific date (YYYY-MM-DD)
         date: Option<String>,
     },
-    
+
     /// Show diary entries and entities
     Show {
         #[command(subcommand)]
         target: ShowTarget,
     },
-    
+
     /// Display statistics and insights
     Stats {
         #[arg(short, long)]
         /// Time period to analyze (e.g. "last week", "this month")
         period: Option<String>,
     },
-    
+
     /// Review entries in spaced repetition style
     Review,
 }
@@ -55,19 +55,19 @@ enum ShowTarget {
         #[arg(short, long)]
         /// Date or date range (YYYY-MM-DD or YYYY-MM-DD..YYYY-MM-DD)
         date: Option<String>,
-        
+
         #[arg(short, long)]
         /// Search term
         search: Option<String>,
-        
+
         #[arg(short, long)]
         /// Filter by person (@name)
         person: Option<String>,
-        
+
         #[arg(short, long)]
         /// Filter by project (%name)
         project: Option<String>,
-        
+
         #[arg(short, long)]
         /// Filter by tag (#name)
         tag: Option<String>,

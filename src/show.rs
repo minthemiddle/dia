@@ -3,9 +3,13 @@ use comfy_table::Table;
 
 pub fn handle_show_command(target: crate::ShowTarget, core: &Core) -> anyhow::Result<()> {
     match target {
-        crate::ShowTarget::Entries { date, search, person, project, tag } => {
-            show_entries(core, date, search, person, project, tag)
-        }
+        crate::ShowTarget::Entries {
+            date,
+            search,
+            person,
+            project,
+            tag,
+        } => show_entries(core, date, search, person, project, tag),
         crate::ShowTarget::People => show_entities(core, "people"),
         crate::ShowTarget::Projects => show_entities(core, "projects"),
         crate::ShowTarget::Tags => show_entities(core, "tags"),
@@ -22,11 +26,11 @@ fn show_entries(
 ) -> anyhow::Result<()> {
     // Get entries from database
     let entries = get_filtered_entries(core, date_filter, search_term, person, project, tag)?;
-    
+
     // Display entries
     let mut table = Table::new();
     table.set_header(vec!["Date", "Entry"]);
-    
+
     if entries.is_empty() {
         println!("No entries found matching your criteria.");
     } else {
@@ -35,7 +39,7 @@ fn show_entries(
         }
         println!("{table}");
     }
-    
+
     Ok(())
 }
 
@@ -51,7 +55,7 @@ fn get_filtered_entries(
     // 1. Build a SQL query based on the filters
     // 2. Execute the query against the database
     // 3. Return the results as Entry structs
-    
+
     // For now, return a dummy entry to use the Entry struct
     let entry = crate::core::Entry {
         id: 1,
@@ -60,7 +64,7 @@ fn get_filtered_entries(
         created_at: chrono::Local::now(),
     };
     println!("Entry ID: {}, Created at: {}", entry.id, entry.created_at);
-    
+
     Ok(vec![entry])
 }
 
