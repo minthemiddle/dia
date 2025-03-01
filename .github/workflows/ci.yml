@@ -93,9 +93,9 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dia-*-${{ github.run_id }}
+          name: dia-*
           path: release
-          pattern: dia-*-${{ github.run_id }}
+          pattern: dia-*
           merge-multiple: true
       
       - name: Create release
