@@ -1,0 +1,15 @@
+.aider*
+context
+
+target/
+**/*.rs.bk
+
+# Cargo build files
+Cargo.lock
+
+# IDE specific files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store

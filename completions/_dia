@@ -1,0 +1,19 @@
+#compdef dia
+# Autocomplete for Dia CLI
+
+_dia() {
+    local -a subcmds
+    subcmds=(
+        'log:Create a new diary entry'
+        'show:Show entries and entities'
+        'stats:Display statistics'
+        'review:Review entries in spaced repetition style'
+        'help:Show help information'
+    )
+    
+    _arguments -C \
+        "1: :{_describe 'command' subcmds}" \
+        "*::arg:->args"
+}
+
+_dia "$@"
