@@ -90,13 +90,10 @@ jobs:
       - name: Wait for all builds to complete
         run: sleep 60
         
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dia-*
           path: release
-          pattern: dia-*
-          merge-multiple: true
       
       - name: Create release
         uses: softprops/action-gh-release@v1
