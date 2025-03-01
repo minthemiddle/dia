@@ -1,6 +1,4 @@
-use dirs;
 use serde::{Deserialize, Serialize};
-use toml;
 use anyhow::Result;
 use std::fs;
 use std::path::PathBuf;
